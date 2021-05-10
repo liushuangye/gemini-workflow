@@ -7,6 +7,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.activiti.api.runtime.shared.query.Pageable;
+import org.activiti.api.task.model.builders.TaskPayloadBuilder;
 import org.activiti.engine.impl.util.CollectionUtil;
 import org.activiti.engine.task.Task;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,14 +81,16 @@ public class TaskController extends BaseController {
     @PostMapping(path = "completeTask")
     @ApiOperation(value = "完成任务", notes = "完成任务，任务进入下一个节点")
     @ApiImplicitParams({
+            @ApiImplicitParam(name = "userId", value = "用户ID", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "taskId", value = "任务ID", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "variables", value = "填充参数", dataType = "body", paramType = "query"),
     })
-    public RestMessage completeTask(@RequestParam("taskId") String taskId, Map<String, Object> variables) {
-
+    public RestMessage completeTask(@RequestParam("userId") String userId,@RequestParam("taskId") String taskId, Map<String, Object> variables) {
         RestMessage restMessage = new RestMessage();
         try {
-            taskService.complete(taskId, variables);
+            securityUtil.logInAs(userId);
+            taskRuntime.complete(TaskPayloadBuilder.complete().withTaskId(taskId).build());
+//            taskService.complete(taskId, variables);
             restMessage = RestMessage.success("完成任务成功", taskId);
         } catch (Exception e) {
             restMessage = RestMessage.fail("完成任务失败", e.getMessage());

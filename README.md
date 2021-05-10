@@ -35,3 +35,5 @@ ACT_GE_*: 通用数据， 用于不同场景下，如存放资源文件。
    通用数据表
 1) act_ge_bytearray二进制数据表
 2) act_ge_property属性数据表存储整个流程引擎级别的数据,初始化表结构时，会默认插入三条记录
+
+//git access token ： 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

@@ -38,6 +38,13 @@ public class StartController extends BaseController {
     public RestMessage start(@RequestParam("processKey") String processKey, @RequestParam("startUserKey") String startUserKey) {
         Map<String, Object> variables = new HashMap<>();
         variables.put("startUserKey", startUserKey);
+
+        //会签-个人
+        List<String> userList = new ArrayList<String>();
+        userList.add("2151");
+        userList.add("4247");
+        variables.put("userList",userList);
+
         RestMessage restMessage = new RestMessage();
         ProcessInstance instance = null;
         try {
