@@ -1,6 +1,6 @@
 package com.gemini.workflow.config;
 
-import com.gemini.workflow.service.UserService;
+import com.gemini.workflow.service.impl.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;

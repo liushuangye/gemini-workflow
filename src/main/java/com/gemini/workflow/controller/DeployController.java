@@ -1,16 +1,15 @@
 package com.gemini.workflow.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.alibaba.fastjson.JSONArray;
+import com.gemini.workflow.service.DeployService;
 import com.gemini.workflow.utils.RestMessage;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import org.activiti.bpmn.model.BpmnModel;
-import org.activiti.editor.language.json.converter.BpmnJsonConverter;
 import org.activiti.engine.repository.Deployment;
-import org.activiti.engine.repository.DeploymentBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,39 +17,39 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author zjialin<br>
- * @version 1.0<br>
- * @createDate 2019/08/30 17:34 <br>
- * @Description <p> 部署流程、删除流程 </p>
- */
-
 @RestController
-@Api(tags = "部署流程、删除流程")
+@Api(tags = "流程发布管理")
 public class DeployController extends BaseController {
 
+    @Autowired
+    private DeployService deployService;
+
+    @GetMapping(path = "listDef")
+    @ApiOperation(value = "查询流程定义", notes = "查询流程定义")
+//    @ApiImplicitParams({})
+    public RestMessage listDef() {
+        RestMessage restMessage = new RestMessage();
+
+        try {
+            JSONArray defArray = deployService.listDeploy();
+            restMessage = RestMessage.success("查询成功", defArray);
+        } catch (Exception e) {
+            restMessage = RestMessage.fail("删除失败", e.getMessage());
+        }
+        return restMessage;
+    }
 
     @PostMapping(path = "deploy")
     @ApiOperation(value = "根据modelId部署流程", notes = "根据modelId部署流程")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "modelId", value = "设计的流程图模型ID", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "processName", value = "设计的流程图名称", dataType = "String", paramType = "query")
-
     })
     public RestMessage deploy(@RequestParam("modelId") String modelId, @RequestParam("processName") String processName) {
         RestMessage restMessage = new RestMessage();
         Deployment deployment = null;
         try {
-            byte[] sourceBytes = repositoryService.getModelEditorSource(modelId);
-            JsonNode editorNode = new ObjectMapper().readTree(sourceBytes);
-            BpmnJsonConverter bpmnJsonConverter = new BpmnJsonConverter();
-            BpmnModel bpmnModel = bpmnJsonConverter.convertToBpmnModel(editorNode);
-            DeploymentBuilder deploymentBuilder = repositoryService.createDeployment()
-                    .name("手动部署")
-                    .key("BUSINESS")
-                    .enableDuplicateFiltering()
-                    .addBpmnModel(processName.concat(".bpmn20.xml"), bpmnModel);
-            deployment = deploymentBuilder.deploy();
+            deployService.deploy(modelId,processName);
         } catch (Exception e) {
             restMessage = RestMessage.fail("部署失败", e.getMessage());
 //            log.error("根据modelId部署流程,异常:{}", e);
@@ -69,15 +68,13 @@ public class DeployController extends BaseController {
     @PostMapping(path = "deleteProcess")
     @ApiOperation(value = "根据部署ID删除流程", notes = "根据部署ID删除流程")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "deploymentId", value = "部署ID", dataType = "String", paramType = "query", example = "")
+            @ApiImplicitParam(name = "deploymentId", value = "部署ID", dataType = "String", paramType = "query", example = ""),
+            @ApiImplicitParam(name = "cascade", value = "是否级联删除-默认false", dataType = "boolean", paramType = "query", example = "false")
     })
-    public RestMessage deleteProcess(@RequestParam("deploymentId") String deploymentId) {
+    public RestMessage deleteProcess(@RequestParam("deploymentId") String deploymentId,@RequestParam("cascade") boolean cascade) {
         RestMessage restMessage = new RestMessage();
         try {
-            /**不带级联的删除：只能删除没有启动的流程，如果流程启动，就会抛出异常*/
-            repositoryService.deleteDeployment(deploymentId);
-//            /**级联删除：不管流程是否启动，都能可以删除（emmm大概是一锅端）*/
-//            repositoryService.deleteDeployment(deploymentId, true);
+            deployService.deleteProcess(deploymentId,cascade);
             restMessage = RestMessage.success("删除成功", null);
         } catch (Exception e) {
             restMessage = RestMessage.fail("删除失败", e.getMessage());

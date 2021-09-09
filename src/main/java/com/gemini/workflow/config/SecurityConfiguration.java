@@ -1,6 +1,6 @@
 package com.gemini.workflow.config;
 
-import com.gemini.workflow.service.UserService;
+import com.gemini.workflow.service.impl.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

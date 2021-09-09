@@ -1,4 +1,4 @@
-package com.gemini.workflow.service;
+package com.gemini.workflow.service.impl;
 
 import com.gemini.workflow.entity.Role;
 import com.gemini.workflow.entity.User;
